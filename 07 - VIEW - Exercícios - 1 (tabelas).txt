@@ -1,0 +1,80 @@
+-- Views - Exercicio 01 - RESPOSTAS
+create database Exe_Views2
+go
+use Exe_Views2
+
+CREATE TABLE Fabricante (
+	CodFabr int constraint pk_fab PRIMARY KEY identity(1,1),
+	RazaoSocial varchar(40) NOT NULL,
+	Cidade varchar(80) constraint df_cid default('FRANCA'),
+	UF varchar(2) constraint chk_uf check(UF in('SP','MG','RJ'))
+)
+
+insert into Fabricante
+values 
+  ('P&G', 'SAOPAULO', 'SP'),
+  ('UNILEVER', 'CAMPINAS', 'SP'),
+  ('JUSSARA', 'FRANCO DA ROCHA', 'SP'),
+  ('NESTLÉ', 'BELO HORIZONTE', 'MG'),
+  ('PARMALAT', 'RIO JANEIRO', 'RJ')
+
+CREATE TABLE Categoria (
+	CodCat int constraint pk_cat PRIMARY KEY identity(100,1)
+	         constraint chk_codCat check(codCat <=999),
+	Descricao varchar(40),
+	Situacao varchar(30) constraint chk_cat 
+	         check(situacao in('ATIVO', 'INATIVO'))	
+)
+
+INSERT INTO CATEGORIA
+VALUES
+('HIGIENE','ATIVO'),
+('ALIMENTOS','ATIVO'),
+('LIMPEZA','INATIVO'),
+('BEBIDA','INATIVO'),
+('LATICINIOS','INATIVO')
+
+SELECT * FROM Categoria
+
+CREATE TABLE Produto (
+	CodPro int constraint pk_pro PRIMARY KEY identity(1,1),
+	Preco money constraint chk_preco check(preco >0),
+	Descricao varchar(50) NOT NULL,
+	CodFabr int constraint fk_pro_fab 
+	     FOREIGN KEY REFERENCES Fabricante(CodFabr),
+	CodCat int constraint fk_pro_cat 
+	     FOREIGN KEY REFERENCES Categoria(CodCat)
+)
+
+insert into produto
+values
+(15, 'VEJA', 4, 104),
+(4.90, 'KAYSER', 3, 101),
+(11, 'DESODORANTE ', 1, 100),
+(8.30, 'BANANA', 2, 102),
+(1.99, 'FARINHA DE TRIGO', 1, 102),
+(1.50, 'SABAO EM PÓ', 3, 104),
+(2.25, 'LAVA LOUÇAS', 5, 100),
+(2.2, 'SORVETE NAPOLITANO', 4, 100),
+(1.80, 'ARROZ BRANCO', 1, 101),
+(10.5, 'CHOCOLATE PRESTÍGIO', 3, 102),
+(11.5, 'SKOL LATA', 2, 100),
+(18.5, 'PATO', 1, 103)
+
+
+alter table produto add estoque int constraint chk_estq 
+                        check(estoque >= 0)
+
+
+select * from Produto
+
+--2.	Crie as seguintes views para:
+--a.	Listar o código do produto, sua descrição e preço, a categoria, o 
+--         nome e a cidade do fabricante.
+alter view vProFabCat
+as
+select CodPro, p.Descricao as NomePro, Preco, 
+       c.Descricao as NomeCat, 
+       f.RazaoSocial as NomeFabricante, f.Cidade as CidadeFrabricante
+from produto P inner join Fabricante F ON P.CodFabr = F.CodFabr
+               inner join Categoria C ON P.CodCat = C.CodCat
